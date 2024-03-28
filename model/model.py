@@ -1,4 +1,4 @@
-from summer2 import CompartmentalModel, AgeStratification, Overwrite
+from summer2 import CompartmentalModel, AgeStratification, Overwrite, Multiply
 from summer2.parameters import Parameter, DerivedOutput
 
 AGEGROUPS = ["0", "5", "15", "40", "60", "75"]
@@ -70,6 +70,11 @@ def stratify_model_by_age(model, fixed_params, compartments):
     cdr = fixed_params["CDR"] 
     detect_adjs = {age: Overwrite(TSR * cdr * (fixed_params["background_mortality_rate"][age] + fixed_params["tb_mortality_rate"] + fixed_params["self_recovery_rate"]) / (1 - cdr)) for age in AGEGROUPS}
     strat.set_flow_adjustments("tx_recovery", detect_adjs)
+
+
+    # Make kids non-infectious
+    inf_adjs = {age: Multiply(0.) if age in ["0", "5"] else Multiply(1.0) for age in AGEGROUPS}
+    strat.add_infectiousness_adjustments("I", inf_adjs)
 
     model.stratify_with(strat)
 
