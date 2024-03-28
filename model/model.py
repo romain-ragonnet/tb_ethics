@@ -1,6 +1,8 @@
 from summer2 import CompartmentalModel, AgeStratification, Overwrite
 from summer2.parameters import Parameter, DerivedOutput
 
+AGEGROUPS = ["0", "5", "15", "40", "60", "75"]
+
 
 def build_model(fixed_params: dict):
 
@@ -44,30 +46,29 @@ def build_model(fixed_params: dict):
 
 
 def stratify_model_by_age(model, fixed_params, compartments):
-    agegroups = ["0", "5", "15", "40", "60", "75"]
-    strat = AgeStratification("age", agegroups, compartments)
+    strat = AgeStratification("age", AGEGROUPS, compartments)
 
     # Adjust progression flows
     for flow_name in ["early_activation", "late_activation", "stabilisation"]:
         # add missing parameter values
-        for age in agegroups[3:]:
+        for age in AGEGROUPS[3:]:
             fixed_params[f"{flow_name}_rate"][age] = fixed_params[f"{flow_name}_rate"]["15"]
 
         adjs = {
-            age: Overwrite(fixed_params[f"{flow_name}_rate"][age])  for age in agegroups
+            age: Overwrite(fixed_params[f"{flow_name}_rate"][age])  for age in AGEGROUPS
         }
 
         strat.set_flow_adjustments(flow_name, adjs)
 
     # Adjust background mortality rates
-    mort_adjs = {age: Overwrite(fixed_params["background_mortality_rate"][age]) for age in agegroups}
+    mort_adjs = {age: Overwrite(fixed_params["background_mortality_rate"][age]) for age in AGEGROUPS}
     strat.set_flow_adjustments("universal_death", mort_adjs)
 
 
     # Adjust detection/treatment rates
     TSR = .85
     cdr = fixed_params["CDR"] 
-    detect_adjs = {age: Overwrite(TSR * cdr * (fixed_params["background_mortality_rate"][age] + fixed_params["tb_mortality_rate"] + fixed_params["self_recovery_rate"]) / (1 - cdr)) for age in agegroups}
+    detect_adjs = {age: Overwrite(TSR * cdr * (fixed_params["background_mortality_rate"][age] + fixed_params["tb_mortality_rate"] + fixed_params["self_recovery_rate"]) / (1 - cdr)) for age in AGEGROUPS}
     strat.set_flow_adjustments("tx_recovery", detect_adjs)
 
     model.stratify_with(strat)
@@ -80,3 +81,8 @@ def request_model_outputs(model, compartments):
     model.request_output_for_flow("incidence_early_raw", "early_activation", save_results=False)
     model.request_output_for_flow("incidence_late_raw", "late_activation", save_results=False)
     model.request_function_output("incidence_per100k", 1.e5 * (DerivedOutput("incidence_early_raw") + DerivedOutput("incidence_late_raw")) / DerivedOutput("total_population"), save_results=True)
+
+    # death outputs
+    model.request_output_for_flow(f"tb_deaths", "tb_death")
+    for age in AGEGROUPS:
+        model.request_output_for_flow(f"tb_deathsXage_{age}", "tb_death", source_strata={"age": age})
