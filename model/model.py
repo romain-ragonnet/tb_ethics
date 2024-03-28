@@ -83,9 +83,16 @@ def request_model_outputs(model, compartments):
 
     model.request_output_for_compartments("total_population", compartments)
 
+    # incidence outputs
     model.request_output_for_flow("incidence_early_raw", "early_activation", save_results=False)
     model.request_output_for_flow("incidence_late_raw", "late_activation", save_results=False)
     model.request_function_output("incidence_per100k", 1.e5 * (DerivedOutput("incidence_early_raw") + DerivedOutput("incidence_late_raw")) / DerivedOutput("total_population"), save_results=True)
+
+    # prevalence of latent and active TB
+    model.request_output_for_compartments("ltbi_prevalence", ["E1", "E2"], save_results=False)
+    model.request_function_output("ltbi_prevalence_perc", 100 * DerivedOutput("ltbi_prevalence") / DerivedOutput("total_population"), save_results=True)
+    model.request_output_for_compartments("tb_prevalence", ["I"], save_results=False)
+    model.request_function_output("tb_prevalence_per100k", 1.e5 * DerivedOutput("tb_prevalence") / DerivedOutput("total_population"), save_results=True)
 
     # death outputs
     model.request_output_for_flow(f"tb_deaths", "tb_death")
