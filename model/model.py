@@ -1,5 +1,7 @@
 from summer2 import CompartmentalModel, AgeStratification, Overwrite, Multiply
 from summer2.parameters import Parameter, DerivedOutput
+from summer2.functions import time as stf
+
 
 AGEGROUPS = ["0", "5", "15", "40", "60", "75"]
 
@@ -16,25 +18,25 @@ def build_model(fixed_params: dict):
 
     model.set_initial_population({"S": fixed_params['start_population'] - 1., "I": 1.})
 
-    # Latency progression flows (all progression rates set to 1, but later adjusted by age)
-    model.add_transition_flow(name="stabilisation", fractional_rate=1., source="E1", dest="E2")
-    model.add_transition_flow(name="early_activation", fractional_rate=1., source="E1", dest="I")
-    model.add_transition_flow(name="late_activation", fractional_rate=1., source="E2", dest="I")
+    # Birth and background mortality
+    model.add_crude_birth_flow("birth", fixed_params["crude_birth_rate"], "S")
+    model.add_universal_death_flows("universal_death", 1.0) # later adjusted by age
 
     # Transmission flows
     model.add_infection_frequency_flow(name="infection", contact_rate=Parameter("effective_contact_rate"), source="S", dest="E1")
     model.add_infection_frequency_flow(name="reinfection", contact_rate=Parameter("effective_contact_rate") * fixed_params['rr_reinfection'], source="E2", dest="E1")
 
+    # Latency progression flows (all progression rates set to 1, but later adjusted by age)
+    model.add_transition_flow(name="stabilisation", fractional_rate=1., source="E1", dest="E2")
+    model.add_transition_flow(name="early_activation", fractional_rate=1., source="E1", dest="I")
+    model.add_transition_flow(name="late_activation", fractional_rate=1., source="E2", dest="I")
+
     # Recovery flows
     model.add_transition_flow(name="self_recovery", fractional_rate=fixed_params["self_recovery_rate"], source="I", dest="S")    
     model.add_transition_flow(name="tx_recovery", fractional_rate= 1., source="I", dest="S")  # later adjusted by age
 
-    # Death
-    model.add_universal_death_flows("universal_death", 1.0) # later adjusted by age
+    # TB death
     model.add_death_flow("tb_death", fixed_params["tb_mortality_rate"], "I")
-
-    # Birth
-    model.add_crude_birth_flow("birth", fixed_params["crude_birth_rate"], "S")
 
     # Stratification by age
     stratify_model_by_age(model, fixed_params, compartments)
@@ -64,13 +66,14 @@ def stratify_model_by_age(model, fixed_params, compartments):
     mort_adjs = {age: Overwrite(fixed_params["background_mortality_rate"][age]) for age in AGEGROUPS}
     strat.set_flow_adjustments("universal_death", mort_adjs)
 
-
     # Adjust detection/treatment rates
-    TSR = .85
-    cdr = fixed_params["CDR"] 
-    detect_adjs = {age: Overwrite(TSR * cdr * (fixed_params["background_mortality_rate"][age] + fixed_params["tb_mortality_rate"] + fixed_params["self_recovery_rate"]) / (1 - cdr)) for age in AGEGROUPS}
+    future_cdr = .80  #FIXME: placeholder only for now
+    cdr = stf.get_linear_interpolation_function(
+        x_pts = [1950., 2000., fixed_params["intervention_time"], fixed_params["intervention_time"] + 1.], 
+        y_pts = [0., fixed_params["CDR_2000"], fixed_params["CDR_2000"], future_cdr]
+    )
+    detect_adjs = {age: Overwrite(fixed_params["TSR"] * cdr * (fixed_params["background_mortality_rate"][age] + fixed_params["tb_mortality_rate"] + fixed_params["self_recovery_rate"]) / (1 - cdr)) for age in AGEGROUPS}
     strat.set_flow_adjustments("tx_recovery", detect_adjs)
-
 
     # Make kids non-infectious
     inf_adjs = {age: Multiply(0.) if age in ["0", "5"] else Multiply(1.0) for age in AGEGROUPS}
