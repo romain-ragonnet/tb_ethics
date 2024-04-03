@@ -23,8 +23,14 @@ def build_model(fixed_params: dict):
     model.add_universal_death_flows("universal_death", 1.0) # later adjusted by age
 
     # Transmission flows
-    model.add_infection_frequency_flow(name="infection", contact_rate=Parameter("effective_contact_rate"), source="S", dest="E1")
-    model.add_infection_frequency_flow(name="reinfection", contact_rate=Parameter("effective_contact_rate") * fixed_params['rr_reinfection'], source="E2", dest="E1")
+    future_transmission_multiplier = 1. #FIXME: placeholder only for now
+    tv_transmission_adj = stf.get_linear_interpolation_function(
+        x_pts = [fixed_params["intervention_time"], fixed_params["intervention_time"] + 1.], 
+        y_pts = [1., future_transmission_multiplier]
+    )
+    adj_effective_contact_rate = Parameter("effective_contact_rate") * tv_transmission_adj
+    model.add_infection_frequency_flow(name="infection", contact_rate=adj_effective_contact_rate, source="S", dest="E1")
+    model.add_infection_frequency_flow(name="reinfection", contact_rate=adj_effective_contact_rate * fixed_params['rr_reinfection'], source="E2", dest="E1")
 
     # Latency progression flows (all progression rates set to 1, but later adjusted by age)
     model.add_transition_flow(name="stabilisation", fractional_rate=1., source="E1", dest="E2")
