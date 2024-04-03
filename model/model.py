@@ -44,6 +44,16 @@ def build_model(fixed_params: dict):
     # TB death
     model.add_death_flow("tb_death", fixed_params["tb_mortality_rate"], "I")
 
+    # Preventive treatment
+    future_pt_rate = 0.  #FIXME: placeholder only for now
+    for comp in ["E1", "E2"]:
+        pt_rate = stf.get_linear_interpolation_function(
+            x_pts = [fixed_params["intervention_time"], fixed_params["intervention_time"] + 1.], 
+            y_pts = [0., future_pt_rate]
+        )
+        model.add_transition_flow(name=f"pt_{comp}", fractional_rate=pt_rate, source=comp, dest="S")    
+
+
     # Stratification by age
     stratify_model_by_age(model, fixed_params, compartments)
 
@@ -73,7 +83,7 @@ def stratify_model_by_age(model, fixed_params, compartments):
     strat.set_flow_adjustments("universal_death", mort_adjs)
 
     # Adjust detection/treatment rates
-    future_cdr = .80  #FIXME: placeholder only for now
+    future_cdr = fixed_params["CDR_2000"]  #FIXME: placeholder only for now
     cdr = stf.get_linear_interpolation_function(
         x_pts = [1950., 2000., fixed_params["intervention_time"], fixed_params["intervention_time"] + 1.], 
         y_pts = [0., fixed_params["CDR_2000"], fixed_params["CDR_2000"], future_cdr]
