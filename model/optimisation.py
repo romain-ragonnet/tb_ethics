@@ -1,4 +1,5 @@
 import pandas as pd
+from jax import numpy as jnp
 
 from estival.model import BayesianCompartmentalModel
 import estival.priors as esp
@@ -13,7 +14,7 @@ def get_optimisation_bcm(fixed_params, decision_var_sum_threshold= 1.5) -> Bayes
     """
     model = build_model(fixed_params)
 
-    priors =  [esp.UniformPrior(f"dec_var_{intervention}", (0, 1.)) for intervention in ['trans', 'cdr', 'pt']]
+    priors =  [esp.UniformPrior(f"decision_var_{intervention}", (0, 1.)) for intervention in ['trans', 'cdr', 'pt']]
 
     targets = [
         est.NormalTarget("incidence_per100k", pd.Series({2040: 0.}), stdev=10.) # used to minimise indicence
