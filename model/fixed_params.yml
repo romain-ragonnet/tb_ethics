@@ -1,0 +1,44 @@
+time_start: 1800
+time_end: 2040
+time_step: 1
+
+start_population: 1000000
+crude_birth_rate: 0.017
+
+early_activation_rate: 
+  '0': 2.4107
+  '5': 0.9862
+  '15': 0.0986
+
+late_activation_rate: 
+  '0': 6.939769e-09
+  '5': 0.0023
+  '15': 0.0012
+
+stabilisation_rate:
+  '0': 4.383
+  '5': 4.383
+  '15': 1.972
+
+
+self_recovery_rate: 0.16
+tb_mortality_rate: 0.130
+background_mortality_rate:  # Vietnam in 2018 extracted using get_death_rates_by_agegroup from https://github.com/monash-emu/AuTuMN/blob/master/autumn/core/inputs/demography/queries.py 
+  '0': 0.0043347634430972014
+  '5': 0.0005100562239187423
+  '15': 0.0013469744398241523
+  '40': 0.005814942133889755
+  '60': 0.025162329043120622
+  '75': 0.14380537779630256
+
+
+rr_reinfection: .20
+
+CDR_2000: 0.60
+TSR: 0.85
+
+use_interventions: false
+intervention_time: 2025
+max_transmission_reduction: .20
+max_pt_rate: .10
+max_intervention_cdr: .95
