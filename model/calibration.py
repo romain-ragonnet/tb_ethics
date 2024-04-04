@@ -7,9 +7,9 @@ import estival.targets as est
 from model.model import build_model
 
 
-def get_bcm(fixed_params, target_incidence=100) -> BayesianCompartmentalModel:
+def get_calibration_bcm(fixed_params, target_incidence=100) -> BayesianCompartmentalModel:
     """
-    Constructs and returns a Bayesian Compartmental Model object.
+    Constructs and returns a Bayesian Compartmental Model object for the purpose of model calibration.
     """
     model = build_model(fixed_params)
 

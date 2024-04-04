@@ -1,5 +1,7 @@
+from jax import numpy as jnp
+
 from summer2 import CompartmentalModel, AgeStratification, Overwrite, Multiply
-from summer2.parameters import Parameter, DerivedOutput
+from summer2.parameters import Parameter, DerivedOutput, Function
 from summer2.functions import time as stf
 
 
@@ -117,3 +119,10 @@ def request_model_outputs(model, compartments):
     model.request_output_for_flow(f"tb_deaths", "tb_death")
     for age in AGEGROUPS:
         model.request_output_for_flow(f"tb_deathsXage_{age}", "tb_death", source_strata={"age": age})
+
+    # track sum of decision variables
+    def repeat_val(example_output, value):
+        return jnp.repeat(value, jnp.size(example_output))
+
+    decision_var_sum_func = Function(repeat_val, [DerivedOutput("total_population"), Parameter("dec_var_trans") + Parameter("dec_var_cdr") + Parameter("dec_var_pt")])
+    model.request_function_output("decision_var_sum", decision_var_sum_func, save_results=True)
