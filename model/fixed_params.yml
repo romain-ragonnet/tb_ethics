@@ -39,6 +39,7 @@ TSR: 0.85
 
 use_interventions: false
 intervention_time: 2025
+max_intervention_sum: 1.5
 max_transmission_reduction: .20
 max_pt_rate: .10
 max_intervention_cdr: .95
