@@ -33,7 +33,7 @@ def get_calibration_bcm(fixed_params, target_incidence=100) -> BayesianCompartme
 def fit_model(target_incidence=200): 
     with open(FIXED_PARAMS_PATH, "r") as f:
         fixed_params = yaml.safe_load(f)
-    bcm = get_calibration_bcm(fixed_params, target_incidence=200)    
+    bcm = get_calibration_bcm(fixed_params, target_incidence)    
     orunner = optimize_model(bcm, num_workers=8)
     rec = orunner.minimize(1000)
     mle_params = rec.value[1]
