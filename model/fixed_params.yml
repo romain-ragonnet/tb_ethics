@@ -30,7 +30,13 @@ background_mortality_rate:  # Vietnam in 2018 extracted using get_death_rates_by
   '40': 0.005814942133889755
   '60': 0.025162329043120622
   '75': 0.14380537779630256
-
+life_expectancy:  # World estimates from UN population division for year 2021, using average across all ages for each age group. Using 80 yo as representative age for 75+
+  '0': 70.9 
+  '5': 64.6
+  '15': 48.2
+  '40': 28.2
+  '60': 15.0
+  '75': 7.7
 
 rr_reinfection: .20
 
