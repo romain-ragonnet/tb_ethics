@@ -4,7 +4,8 @@ from model.calibration import FIXED_PARAMS_PATH
 from model.optimisation import get_optimisation_bcm
 
 output_names = {
-    "incidence_per100k": "TB incidence (/100k/y)"
+    "incidence_per100k": "TB incidence (/100k/y)",
+    "ltbi_prevalence_perc": "LTBI prevalence (%)"
 }
 
 intervention_names = {

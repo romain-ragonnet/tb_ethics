@@ -64,7 +64,7 @@ def build_model(fixed_params: dict):
     stratify_model_by_age(model, fixed_params, compartments)
 
     # Outputs
-    request_model_outputs(model, compartments)
+    request_model_outputs(model, compartments, fixed_params['intervention_time'])
 
     return model
 
@@ -107,7 +107,7 @@ def stratify_model_by_age(model, fixed_params, compartments):
     model.stratify_with(strat)
 
 
-def request_model_outputs(model, compartments):
+def request_model_outputs(model, compartments, intervention_time):
 
     model.request_output_for_compartments("total_population", compartments)
 
@@ -126,6 +126,14 @@ def request_model_outputs(model, compartments):
     model.request_output_for_flow(f"tb_deaths", "tb_death")
     for age in AGEGROUPS:
         model.request_output_for_flow(f"tb_deathsXage_{age}", "tb_death", source_strata={"age": age})
+
+    # cumulative death outputs (overall and paediatric)
+    model.request_cumulative_output(name=f"cumulative_future_deaths", source=f"tb_deaths", start_time=intervention_time, save_results=True)
+
+    paed_agegroups = ["0", "5"]
+    for age in paed_agegroups:
+        model.request_cumulative_output(name=f"cumulative_future_deathsXage_{age}", source=f"tb_deathsXage_{age}", start_time=intervention_time, save_results=False)
+    model.request_aggregate_output(name="cumulative_future_paed_deaths", sources=[f"cumulative_future_deathsXage_{age}" for age in paed_agegroups], save_results=True)
 
     # track sum of decision variables (trans + cdr)
     def repeat_val(example_output, value):
