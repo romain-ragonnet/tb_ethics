@@ -50,7 +50,7 @@ def optimise_interventions(mle_params, minimised_indicator="incidence_per100k"):
     opti_bcm = get_optimisation_bcm(interv_params, decision_var_sum_threshold, minimised_indicator)
 
     opti_orunner = optimize_model(opti_bcm, num_workers=8)
-    opti_rec = opti_orunner.minimize(1000)
+    opti_rec = opti_orunner.minimize(4000)
     opti_mle_params = opti_rec.value[1]
 
     return opti_bcm, opti_mle_params
