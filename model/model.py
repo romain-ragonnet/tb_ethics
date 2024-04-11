@@ -51,8 +51,7 @@ def build_model(fixed_params: dict):
 
     # Preventive treatment
     if fixed_params["use_interventions"]:
-        decision_var_pt = fixed_params["max_intervention_sum"] - Parameter("decision_var_trans") - Parameter("decision_var_cdr")
-        future_pt_rate = decision_var_pt * fixed_params["max_pt_rate"]
+        future_pt_rate = Parameter("decision_var_pt") * fixed_params["max_pt_rate"]
         for comp in ["E1", "E2"]:
             pt_rate = stf.get_linear_interpolation_function(
                 x_pts = [fixed_params["intervention_time"], fixed_params["intervention_time"] + 1.], 
@@ -140,9 +139,9 @@ def request_model_outputs(model, compartments, intervention_time, life_expectanc
         model.request_function_output(name=f"years_of_life_lostXage_{age}", func=DerivedOutput(f"cumulative_future_deathsXage_{age}") * life_expectancy[age], save_results=False)
     model.request_aggregate_output(name="years_of_life_lost", sources = [f"years_of_life_lostXage_{age}" for age in AGEGROUPS], save_results=True)
 
-    # track sum of decision variables (trans + cdr)
+    # track sum of decision variables
     def repeat_val(example_output, value):
         return jnp.repeat(value, jnp.size(example_output))
 
-    decision_var_sum_func = Function(repeat_val, [DerivedOutput("total_population"), Parameter("decision_var_trans") + Parameter("decision_var_cdr")])
+    decision_var_sum_func = Function(repeat_val, [DerivedOutput("total_population"), Parameter("decision_var_trans") + Parameter("decision_var_cdr") + Parameter("decision_var_pt")])
     model.request_function_output("decision_var_sum", decision_var_sum_func, save_results=True)

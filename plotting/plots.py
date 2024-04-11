@@ -23,8 +23,8 @@ def make_intervention_piechart(opti_mle_params, ax=None):
         fixed_params = yaml.safe_load(f)
     decision_var_sum_threshold = fixed_params["max_intervention_sum"]
 
-    labels = [intervention_names[dec_var.split("decision_var_")[1]] for dec_var in list(opti_mle_params.keys()) + ["decision_var_pt"]] 
-    values = list(opti_mle_params.values()) + [decision_var_sum_threshold - sum(list(opti_mle_params.values()))]
+    labels = [intervention_names[dec_var.split("decision_var_")[1]] for dec_var in list(opti_mle_params.keys())] 
+    values = list(opti_mle_params.values())
 
     ax.pie(values, labels=labels, explode=[0.05]*3)
     ax.set_title("Optimal intervention plan")
@@ -43,7 +43,8 @@ def plot_future_trajectories(opti_bcm, opti_mle_params, fitted_effective_contact
     baseline_bcm = get_optimisation_bcm(baseline_params, 0.)
     baseline_decision_vars = {
         'decision_var_trans': 0.,
-        'decision_var_cdr': 0.
+        'decision_var_cdr': 0.,
+        'decision_var_pt': 0.,
     }
 
     ymax = 0.

@@ -17,8 +17,7 @@ def get_optimisation_bcm(interv_params, decision_var_sum_threshold, minimised_in
     """
     model = build_model(interv_params)
 
-    priors =  [esp.UniformPrior(f"decision_var_{intervention}", (0, 1.)) for intervention in ['trans', 'cdr']]  
-    # 'decision_var_pt' automatically set to "decision_var_sum_threshold - decision_var_trans - decision_var_cdr"
+    priors =  [esp.UniformPrior(f"decision_var_{intervention}", (0, 1.)) for intervention in ['trans', 'cdr', 'pt']]  
 
     targets = [
         est.NormalTarget(minimised_indicator, pd.Series({2040: 0.}), stdev=10.) # used to minimise indicence
@@ -50,7 +49,7 @@ def optimise_interventions(mle_params, minimised_indicator="incidence_per100k"):
     opti_bcm = get_optimisation_bcm(interv_params, decision_var_sum_threshold, minimised_indicator)
 
     opti_orunner = optimize_model(opti_bcm, num_workers=8)
-    opti_rec = opti_orunner.minimize(4000)
+    opti_rec = opti_orunner.minimize(2000)
     opti_mle_params = opti_rec.value[1]
 
     return opti_bcm, opti_mle_params
