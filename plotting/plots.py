@@ -5,7 +5,9 @@ from model.optimisation import get_optimisation_bcm
 
 output_names = {
     "incidence_per100k": "TB incidence (/100k/y)",
-    "ltbi_prevalence_perc": "LTBI prevalence (%)"
+    "ltbi_prevalence_perc": "LTBI prevalence (%)",
+    "infection_per100k": "infection rate (/100k/y)",
+
 }
 
 intervention_names = {

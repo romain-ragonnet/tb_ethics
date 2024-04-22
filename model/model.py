@@ -110,12 +110,18 @@ def request_model_outputs(model, compartments, intervention_time, life_expectanc
 
     model.request_output_for_compartments("total_population", compartments)
 
-    # incidence outputs
+    # active TB incidence outputs
     model.request_output_for_flow("incidence_early_raw", "early_activation", save_results=False)
     model.request_output_for_flow("incidence_late_raw", "late_activation", save_results=False)
     model.request_aggregate_output("incidence_raw", sources=["incidence_early_raw", "incidence_late_raw"], save_results=False)
     model.request_function_output("incidence_per100k", 1.e5 * DerivedOutput("incidence_raw") / DerivedOutput("total_population"), save_results=True)
     model.request_cumulative_output(name=f"cumulative_incidence", source="incidence_raw", start_time=intervention_time, save_results=True)
+
+    # infection rate
+    model.request_output_for_flow("naive_infection_raw", "infection", save_results=False)
+    model.request_output_for_flow("reinfection_raw", "reinfection", save_results=False)
+    model.request_aggregate_output("infection_raw", sources=["naive_infection_raw", "reinfection_raw"], save_results=False)
+    model.request_function_output("infection_per100k", 1.e5 * DerivedOutput("infection_raw") / DerivedOutput("total_population"), save_results=True)
 
     # prevalence of latent and active TB
     model.request_output_for_compartments("ltbi_prevalence", ["E1", "E2"], save_results=False)
