@@ -4,10 +4,13 @@ from model.calibration import FIXED_PARAMS_PATH
 from model.optimisation import get_optimisation_bcm
 
 output_names = {
-    "incidence_per100k": "TB incidence (/100k/y)",
+    "incidence_per100k": "TB incidence (/100,000/y)",
+    "cumulative_incidence": "Cumulative TB episodes",
     "ltbi_prevalence_perc": "LTBI prevalence (%)",
+    "cumulative_future_deaths": "Cumulative TB deaths",
+    "cumulative_future_paed_deaths": "Cumulative paediatric TB deaths",
     "infection_per100k": "infection rate (/100k/y)",
-
+    "tb_deaths": "TB mortality"
 }
 
 intervention_names = {
