@@ -42,12 +42,7 @@ def fit_model(target_incidence=200):
 
 
 def check_fit(bcm, mle_params):
-    baseline_decision_vars = {
-        "decision_var_trans": 0.,
-        "decision_var_cdr": 0.,
-        "decision_var_pt": 0.
-    }
-    res = bcm.run(mle_params | baseline_decision_vars)
+    res = bcm.run(mle_params)
     derived_df = res.derived_outputs
     derived_df['incidence_per100k'].plot()
 

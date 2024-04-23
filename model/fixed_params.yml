@@ -5,6 +5,8 @@ time_step: 1
 start_population: 1000000
 crude_birth_rate: 0.017
 
+effective_contact_rate: 1.
+
 early_activation_rate: 
   '0': 2.4107
   '5': 0.9862
@@ -43,8 +45,11 @@ rr_reinfection: .20
 CDR_2000: 0.60
 TSR: 0.85
 
-use_interventions: false
 intervention_time: 2025
 max_transmission_reduction: .25
 max_pt_rate: .10
 max_intervention_cdr: .90
+
+decision_var_trans: 0.
+decision_var_cdr: 0.
+decision_var_pt: 0.

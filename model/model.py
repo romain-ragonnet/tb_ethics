@@ -25,18 +25,14 @@ def build_model(fixed_params: dict):
     model.add_universal_death_flows("universal_death", 1.0) # later adjusted by age
 
     # Transmission flows
-    if fixed_params["use_interventions"]:
-        future_transmission_multiplier = 1. - Parameter("decision_var_trans") * fixed_params["max_transmission_reduction"] 
-        tv_transmission_adj = stf.get_linear_interpolation_function(
-            x_pts = [fixed_params["intervention_time"], fixed_params["intervention_time"] + 1.], 
-            y_pts = [1., future_transmission_multiplier]
-        )    
-        model.add_infection_frequency_flow(name="infection", contact_rate=fixed_params["fitted_effective_contact_rate"] * tv_transmission_adj, source="S", dest="E1")
-        model.add_infection_frequency_flow(name="reinfection", contact_rate=fixed_params["fitted_effective_contact_rate"] * tv_transmission_adj * fixed_params['rr_reinfection'], source="E2", dest="E1")
-    else:
-        model.add_infection_frequency_flow(name="infection", contact_rate=Parameter("effective_contact_rate"), source="S", dest="E1")    
-        model.add_infection_frequency_flow(name="reinfection", contact_rate=Parameter("effective_contact_rate") * fixed_params['rr_reinfection'], source="E2", dest="E1")
-
+    future_transmission_multiplier = 1. - Parameter("decision_var_trans") * fixed_params["max_transmission_reduction"] 
+    tv_transmission_adj = stf.get_linear_interpolation_function(
+        x_pts = [fixed_params["intervention_time"], fixed_params["intervention_time"] + 1.], 
+        y_pts = [1., future_transmission_multiplier]
+    )    
+    model.add_infection_frequency_flow(name="infection", contact_rate=Parameter("effective_contact_rate") * tv_transmission_adj, source="S", dest="E1")
+    model.add_infection_frequency_flow(name="reinfection", contact_rate=Parameter("effective_contact_rate") * tv_transmission_adj * fixed_params['rr_reinfection'], source="E2", dest="E1")
+    
     # Latency progression flows (all progression rates set to 1, but later adjusted by age)
     model.add_transition_flow(name="stabilisation", fractional_rate=1., source="E1", dest="E2")
     model.add_transition_flow(name="early_activation", fractional_rate=1., source="E1", dest="I")
@@ -49,15 +45,14 @@ def build_model(fixed_params: dict):
     # TB death
     model.add_death_flow("tb_death", fixed_params["tb_mortality_rate"], "I")
 
-    # Preventive treatment
-    if fixed_params["use_interventions"]:
-        future_pt_rate = Parameter("decision_var_pt") * fixed_params["max_pt_rate"]
-        for comp in ["E1", "E2"]:
-            pt_rate = stf.get_linear_interpolation_function(
-                x_pts = [fixed_params["intervention_time"], fixed_params["intervention_time"] + 1.], 
-                y_pts = [0., future_pt_rate]
-            )
-            model.add_transition_flow(name=f"pt_{comp}", fractional_rate=pt_rate, source=comp, dest="S")    
+    # Preventive treatment    
+    future_pt_rate = Parameter("decision_var_pt") * fixed_params["max_pt_rate"]
+    for comp in ["E1", "E2"]:
+        pt_rate = stf.get_linear_interpolation_function(
+            x_pts = [fixed_params["intervention_time"], fixed_params["intervention_time"] + 1.], 
+            y_pts = [0., future_pt_rate]
+        )
+        model.add_transition_flow(name=f"pt_{comp}", fractional_rate=pt_rate, source=comp, dest="S")    
 
     # Stratification by age
     stratify_model_by_age(model, fixed_params, compartments)
@@ -88,10 +83,7 @@ def stratify_model_by_age(model, fixed_params, compartments):
     strat.set_flow_adjustments("universal_death", mort_adjs)
 
     # Adjust detection/treatment rates
-    if fixed_params["use_interventions"]:
-        future_cdr = fixed_params["CDR_2000"] + Parameter("decision_var_cdr") * (fixed_params["max_intervention_cdr"] - fixed_params["CDR_2000"])
-    else:
-        future_cdr = fixed_params["CDR_2000"]
+    future_cdr = fixed_params["CDR_2000"] + Parameter("decision_var_cdr") * (fixed_params["max_intervention_cdr"] - fixed_params["CDR_2000"])
     cdr = stf.get_linear_interpolation_function(
         x_pts = [1950., 2000., fixed_params["intervention_time"], fixed_params["intervention_time"] + 1.], 
         y_pts = [0., fixed_params["CDR_2000"], fixed_params["CDR_2000"], future_cdr]

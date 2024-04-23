@@ -11,12 +11,14 @@ from model.model import build_model
 from model.calibration import FIXED_PARAMS_PATH
 
 
-def get_optimisation_bcm(interv_params, decision_var_sum_threshold, minimised_indicator="incidence_per100k") -> BayesianCompartmentalModel:
+def get_optimisation_bcm(mle_params, decision_var_sum_threshold, minimised_indicator="incidence_per100k") -> BayesianCompartmentalModel:
     """
     Constructs and returns a Bayesian Compartmental Model object for the purpose of intervention optimisation.
-    """
-    model = build_model(interv_params)
-
+    """    
+    with open(FIXED_PARAMS_PATH, "r") as f:
+        fixed_params = yaml.safe_load(f)
+    params = fixed_params | mle_params
+    model = build_model(params)
     priors =  [esp.UniformPrior(f"decision_var_{intervention}", (0, 1.)) for intervention in ['trans', 'cdr', 'pt']]  
 
     targets = [
@@ -37,16 +39,11 @@ def get_optimisation_bcm(interv_params, decision_var_sum_threshold, minimised_in
         )
     )
 
-    return BayesianCompartmentalModel(model, interv_params, priors, targets)
+    return BayesianCompartmentalModel(model, params, priors, targets)
 
 
 def optimise_interventions(mle_params, decision_var_sum_threshold=1.5, minimised_indicator="incidence_per100k"):
-    with open(FIXED_PARAMS_PATH, "r") as f:
-        fixed_params = yaml.safe_load(f)
-
-    interv_params = fixed_params | {"use_interventions":True, "fitted_effective_contact_rate": mle_params["effective_contact_rate"]}
-    opti_bcm = get_optimisation_bcm(interv_params, decision_var_sum_threshold, minimised_indicator)
-
+    opti_bcm = get_optimisation_bcm(mle_params, decision_var_sum_threshold, minimised_indicator)
     opti_orunner = optimize_model(opti_bcm, num_workers=8)
     opti_rec = opti_orunner.minimize(2000)
     opti_mle_params = opti_rec.value[1]

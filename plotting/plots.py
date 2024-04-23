@@ -23,11 +23,6 @@ def make_intervention_piechart(opti_mle_params, ax=None):
     if not ax:
         fig, ax = plt.subplots()
 
-    # retrieve maximum intervention sum from fixed parameters
-    with open(FIXED_PARAMS_PATH, "r") as f:
-        fixed_params = yaml.safe_load(f)
-    decision_var_sum_threshold = fixed_params["max_intervention_sum"]
-
     labels = [intervention_names[dec_var.split("decision_var_")[1]] for dec_var in list(opti_mle_params.keys())] 
     values = list(opti_mle_params.values())
 
@@ -39,23 +34,13 @@ def make_intervention_piechart(opti_mle_params, ax=None):
 
 def plot_future_trajectories(opti_bcm, opti_mle_params, fitted_effective_contact_rate, output="incidence_per100k", xmin=2020, ax=None):
     if not ax:
-        fig, ax = plt.subplots(1, 1)
-    
-    with open(FIXED_PARAMS_PATH, "r") as f:
-        fixed_params = yaml.safe_load(f)
-    baseline_params = fixed_params | {
-        "use_interventions":True, "fitted_effective_contact_rate": fitted_effective_contact_rate, "max_intervention_sum": 0.}
-    baseline_bcm = get_optimisation_bcm(baseline_params, 0.)
-    baseline_decision_vars = {
-        'decision_var_trans': 0.,
-        'decision_var_cdr': 0.,
-        'decision_var_pt': 0.,
-    }
+        fig, ax = plt.subplots(1, 1)    
+
+    baseline_decision_vars = {f"decision_var_{intervention}": 0. for intervention in ['trans', 'cdr', 'pt']}
 
     ymax = 0.
     for sc_name, dec_vars in zip(['baseline', 'optimised'], [baseline_decision_vars, opti_mle_params]):
-        bcm = baseline_bcm if sc_name == 'baseline' else opti_bcm        
-        res = bcm.run(dec_vars)
+        res = opti_bcm.run(dec_vars)
         derived_df = res.derived_outputs
         derived_df[output].loc[xmin:].plot(label=sc_name)
         ymax = max(ymax, derived_df[output].loc[xmin:].max())
