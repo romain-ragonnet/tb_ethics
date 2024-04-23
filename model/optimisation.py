@@ -40,11 +40,10 @@ def get_optimisation_bcm(interv_params, decision_var_sum_threshold, minimised_in
     return BayesianCompartmentalModel(model, interv_params, priors, targets)
 
 
-def optimise_interventions(mle_params, minimised_indicator="incidence_per100k"):
+def optimise_interventions(mle_params, decision_var_sum_threshold=1.5, minimised_indicator="incidence_per100k"):
     with open(FIXED_PARAMS_PATH, "r") as f:
         fixed_params = yaml.safe_load(f)
 
-    decision_var_sum_threshold = fixed_params["max_intervention_sum"]
     interv_params = fixed_params | {"use_interventions":True, "fitted_effective_contact_rate": mle_params["effective_contact_rate"]}
     opti_bcm = get_optimisation_bcm(interv_params, decision_var_sum_threshold, minimised_indicator)
 
