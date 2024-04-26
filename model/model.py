@@ -109,6 +109,9 @@ def request_model_outputs(model, compartments, intervention_time, life_expectanc
     model.request_function_output("incidence_per100k", 1.e5 * DerivedOutput("incidence_raw") / DerivedOutput("total_population"), save_results=True)
     model.request_cumulative_output(name=f"cumulative_incidence", source="incidence_raw", start_time=intervention_time, save_results=True)
 
+    # Proportion of incidence originating from early compartment
+    model.request_function_output("prop_incidence_early", DerivedOutput("incidence_early_raw") / DerivedOutput("incidence_raw"), save_results=True)
+
     # infection rate
     model.request_output_for_flow("naive_infection_raw", "infection", save_results=False)
     model.request_output_for_flow("reinfection_raw", "reinfection", save_results=False)

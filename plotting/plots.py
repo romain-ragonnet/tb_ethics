@@ -10,7 +10,8 @@ output_names = {
     "cumulative_future_deaths": "Cumulative TB deaths",
     "cumulative_future_paed_deaths": "Cumulative paediatric TB deaths",
     "infection_per100k": "infection rate (/100k/y)",
-    "tb_deaths": "TB mortality"
+    "tb_deaths": "TB mortality",
+    "prop_incidence_early": "Incidence prop. from early activation"
 }
 
 intervention_names = {
@@ -32,7 +33,7 @@ def make_intervention_piechart(opti_mle_params, ax=None):
     return ax
 
 
-def plot_future_trajectories(opti_bcm, opti_mle_params, fitted_effective_contact_rate, output="incidence_per100k", xmin=2020, ax=None):
+def plot_future_trajectories(opti_bcm, opti_mle_params, output="incidence_per100k", xmin=2020, ax=None):
     if not ax:
         fig, ax = plt.subplots(1, 1)    
 
