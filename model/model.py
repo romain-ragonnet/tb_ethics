@@ -118,9 +118,13 @@ def request_model_outputs(model, compartments, intervention_time, life_expectanc
     model.request_aggregate_output("infection_raw", sources=["naive_infection_raw", "reinfection_raw"], save_results=False)
     model.request_function_output("infection_per100k", 1.e5 * DerivedOutput("infection_raw") / DerivedOutput("total_population"), save_results=True)
 
-    # prevalence of latent and active TB
-    model.request_output_for_compartments("ltbi_prevalence", ["E1", "E2"], save_results=False)
-    model.request_function_output("ltbi_prevalence_perc", 100 * DerivedOutput("ltbi_prevalence") / DerivedOutput("total_population"), save_results=True)
+    # prevalence of latent TB infection
+    for stage, comp in zip(["early", "late"], ["E1", "E2"]):
+        model.request_output_for_compartments(f"ltbi_prevalence_{stage}", [comp], save_results=False)
+        model.request_function_output(f"ltbi_prevalence_{stage}_perc", 100 * DerivedOutput(f"ltbi_prevalence_{stage}") / DerivedOutput("total_population"), save_results=True)
+    model.request_function_output("ltbi_prevalence_perc", 100 * (DerivedOutput("ltbi_prevalence_early") + DerivedOutput("ltbi_prevalence_late")) / DerivedOutput("total_population"), save_results=True)
+    
+    # prevalence of active TB
     model.request_output_for_compartments("tb_prevalence", ["I"], save_results=False)
     model.request_function_output("tb_prevalence_per100k", 1.e5 * DerivedOutput("tb_prevalence") / DerivedOutput("total_population"), save_results=True)
 

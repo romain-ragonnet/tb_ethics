@@ -11,7 +11,9 @@ output_names = {
     "cumulative_future_paed_deaths": "Cumulative paediatric TB deaths",
     "infection_per100k": "infection rate (/100k/y)",
     "tb_deaths": "TB mortality",
-    "prop_incidence_early": "Incidence prop. from early activation"
+    "prop_incidence_early": "Incidence prop. from early activation",
+    "ltbi_prevalence_early_perc": "Early LTBI prevalence (%)",
+    "ltbi_prevalence_late_perc": "Late LTBI prevalence (%)",
 }
 
 intervention_names = {
@@ -43,7 +45,7 @@ def plot_future_trajectories(opti_bcm, opti_mle_params, output="incidence_per100
     for sc_name, dec_vars in zip(['baseline', 'optimised'], [baseline_decision_vars, opti_mle_params]):
         res = opti_bcm.run(dec_vars)
         derived_df = res.derived_outputs
-        derived_df[output].loc[xmin:].plot(label=sc_name)
+        derived_df[output].loc[xmin:].plot(label=sc_name, ax=ax)
         ymax = max(ymax, derived_df[output].loc[xmin:].max())
 
     ax.set_ylabel(output_names[output])
